@@ -15,7 +15,7 @@ except ImportError:
     sys.exit(1)
 
 OLLAMA_BASE = "http://localhost:11434"
-MODEL = "llama3.2"
+MODEL = "llama3.2:1b"
 
 
 def check_ollama_running():

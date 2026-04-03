@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import sys
 from pathlib import Path
 
+from backend.app.schemas.ai import AIReportRequest, AIReportResponse
+
 # Add ai_engine to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -15,6 +17,39 @@ from ai_engine.optimizer import RouteOptimizer, BinLocation
 from ai_engine.llm_wrapper import LLMWrapper
 
 app = FastAPI()
+
+# Approximate Almaty city bounds (urban core only).
+ALMATY_CITY_BOUNDS = {
+    "lat_min": 43.195,
+    "lat_max": 43.305,
+    "lng_min": 76.84,
+    "lng_max": 76.985,
+}
+
+
+def _is_excluded_zone(lat: float, lng: float) -> bool:
+    """Exclude mountain south-east and far peripheral edges from mock generation."""
+    # South-east mountain belt (Medeu direction)
+    if lat < 43.22 and lng > 76.955:
+        return True
+
+    # Far western periphery
+    if lat < 43.215 and lng < 76.86:
+        return True
+
+    return False
+
+
+def _generate_city_point() -> tuple[float, float]:
+    """Generate a random point limited to urban Almaty bounds."""
+    for _ in range(300):
+        lat = random.uniform(ALMATY_CITY_BOUNDS["lat_min"], ALMATY_CITY_BOUNDS["lat_max"])
+        lng = random.uniform(ALMATY_CITY_BOUNDS["lng_min"], ALMATY_CITY_BOUNDS["lng_max"])
+        if not _is_excluded_zone(lat, lng):
+            return lat, lng
+
+    # Fallback to city center if random sampling failed repeatedly.
+    return 43.2389, 76.9455
 
 # Allow CORS for frontend
 app.add_middleware(
@@ -28,22 +63,21 @@ app.add_middleware(
 @app.get("/bins")
 def get_bins():
     items = []
-    # Almaty center coordinates (more precise)
-    base_lat = 43.2389  # центр города
-    base_lng = 76.9455  # центр города
-    # Radius: ±0.10 degrees ≈ 11 km (covers entire city properly)
+
     for i in range(50):
+        lat, lng = _generate_city_point()
         items.append({
             "id": i,
-            "lat": base_lat + random.uniform(-0.10, 0.10),
-            "lng": base_lng + random.uniform(-0.10, 0.10),
+            "lat": lat,
+            "lng": lng,
             "fill_level": random.randint(0, 100)
         })
+
     return items
 
 
-@app.post("/api/v1/ai/report")
-def ai_report(request: dict):
+@app.post("/api/v1/ai/report", response_model=AIReportResponse)
+def ai_report(request: AIReportRequest):
     """
     ПОЛНЫЙ ПАЙПЛАЙН AI:
     1. data_processor: валидация и обработка сырых данных
@@ -52,17 +86,32 @@ def ai_report(request: dict):
     4. llm_wrapper: генерация текстового отчета (если Ollama доступна)
     """
     
-    raw_readings = request.get("raw_readings", [])
-    start_point = request.get("start_point", {"latitude": 43.2389, "longitude": 76.9455})
+    raw_readings = request.raw_readings
+    start_point = request.start_point.model_dump()
     
     if not raw_readings:
         return {
             "predictions": [],
-            "route": {"stops": [], "total_distance_km": 0, "estimated_duration_min": 0},
+            "route": {
+                "stops": [],
+                "total_distance_km": 0,
+                "estimated_duration_min": 0,
+                "bins_count": 0,
+                "truck_id": "TRUCK-01"
+            },
             "report": {
                 "what_is_happening": "Нет данных для анализа",
                 "how_critical": "Normal",
                 "recommended_actions": "Отправьте данные с датчиков"
+            },
+            "statistics": {
+                "total_bins_analysed": 0,
+                "critical_bins": 0,
+                "warning_bins": 0,
+                "normal_bins": 0,
+                "average_fill_level": 0,
+                "anomalies_detected": 0,
+                "anomaly_reasons": []
             }
         }
     
@@ -73,9 +122,9 @@ def ai_report(request: dict):
     enriched_readings = []
     for r in raw_readings:
         # Mock история: 10 измерений за последний час
-        timestamp = datetime.utcnow()
+        timestamp = r.timestamp or datetime.utcnow()
         history_points = []
-        current_fill = r.get("fill_level", 0) / 100
+        current_fill = r.fill_level / 100 if r.fill_level > 1 else r.fill_level
         
         # Создаём 10 точек истории, растущих к текущему значению
         for i in range(10, 0, -1):
@@ -94,12 +143,12 @@ def ai_report(request: dict):
         })
         
         enriched_readings.append({
-            "bin_id": r.get("bin_id", r.get("id", f"BIN_{len(enriched_readings)}")),
+            "bin_id": r.bin_id,
             "timestamp": timestamp.isoformat(),
             "fill_level": current_fill,
-            "latitude": r.get("latitude", r.get("lat", 43.2389)),
-            "longitude": r.get("longitude", r.get("lng", 76.9455)),
-            "district": r.get("district", "Central"),
+            "latitude": r.latitude,
+            "longitude": r.longitude,
+            "district": r.district,
             "history": history_points
         })
     

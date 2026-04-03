@@ -1,6 +1,6 @@
 """
 llm_wrapper.py
-Генерирует текстовый отчёт через локальную модель Ollama (llama3.2).
+Генерирует текстовый отчёт через локальную модель Ollama (llama3.2:1b).
 Ollama должен быть запущен: ollama serve
 """
 
@@ -13,7 +13,7 @@ from urllib import error as urlerror
 logger = logging.getLogger(__name__)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "llama3.2"
+MODEL = "llama3.2:1b"
 
 
 @dataclass
@@ -49,7 +49,7 @@ class LLMWrapper:
         if not self.health_check():
             return self._fallback(
                 "Ollama не запущена или модель не загружена. "
-                "Запусти: ollama serve && ollama pull llama3.2"
+                "Запусти: ollama serve; ollama pull llama3.2:1b"
             )
 
         prompt = self._build_prompt(context)
@@ -59,10 +59,9 @@ class LLMWrapper:
     def _build_prompt(self, ctx: dict) -> str:
         avg_pct = round(ctx.get("avg_fill_level", 0) * 100)
         anomalies = ctx.get("anomalies", [])
-        anomaly_text = ", ".join(anomalies) if anomalies else "нет"
+        anomaly_text = ", ".join(anomalies[:3]) if anomalies else "нет"
 
-        return f"""Ты — ИИ-аналитик системы управления вывозом мусора в умном городе.
-Проанализируй данные и составь краткий оперативный отчёт на русском языке.
+        return f"""Ты аналитик по вывозу мусора. Верни КРАТКИЙ JSON на русском.
 
 ДАННЫЕ:
 - Всего баков: {ctx.get('total_bins', 0)}
@@ -74,11 +73,11 @@ class LLMWrapper:
 - Маршрут: {ctx.get('route_stops', 0)} остановок, {ctx.get('route_distance_km', 0)} км, ETA {ctx.get('route_eta_min', 0)} мин
 - Аномалии: {anomaly_text}
 
-Ответь ТОЛЬКО валидным JSON без markdown, без пояснений, без кавычек вокруг JSON:
+Ответь ТОЛЬКО валидным JSON (без markdown):
 {{
-  "what_is_happening": "1-2 предложения что сейчас происходит",
-  "how_critical": "1 предложение уровень срочности Низкий/Средний/Высокий/Критический",
-  "recommended_actions": "2-3 конкретных действия для оператора"
+    "what_is_happening": "коротко, до 20 слов",
+    "how_critical": "Низкий/Средний/Высокий/Критический",
+    "recommended_actions": "до 2 коротких действий"
 }}"""
 
     def _call_ollama(self, prompt: str) -> str:
@@ -87,10 +86,11 @@ class LLMWrapper:
                 {
                     "model": self.model,
                     "prompt": prompt,
+                    "format": "json",
                     "stream": False,
                     "options": {
-                        "temperature": 0.3,
-                        "num_predict": 300,
+                        "temperature": 0.2,
+                        "num_predict": 96,
                     },
                 }
             ).encode("utf-8")
@@ -101,7 +101,7 @@ class LLMWrapper:
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
-            with urlrequest.urlopen(req, timeout=60) as response:
+            with urlrequest.urlopen(req, timeout=45) as response:
                 data = json.loads(response.read().decode("utf-8"))
             return data.get("response", "")
         except urlerror.URLError as e:
@@ -124,19 +124,35 @@ class LLMWrapper:
 
         try:
             parsed = json.loads(clean)
+            what = self._fix_text_encoding(parsed.get("what_is_happening", ""))
+            critical = self._fix_text_encoding(parsed.get("how_critical", ""))
+            actions = self._fix_text_encoding(parsed.get("recommended_actions", ""))
             return SituationReport(
-                what_is_happening=parsed.get("what_is_happening", ""),
-                how_critical=parsed.get("how_critical", ""),
-                recommended_actions=parsed.get("recommended_actions", ""),
+                what_is_happening=what,
+                how_critical=critical,
+                recommended_actions=actions,
                 raw_response=raw,
             )
         except json.JSONDecodeError:
             return SituationReport(
-                what_is_happening=raw[:300],
+                what_is_happening=self._fix_text_encoding(raw[:300]),
                 how_critical="Не определён",
                 recommended_actions="Проверьте лог системы",
                 raw_response=raw,
             )
+
+    def _fix_text_encoding(self, text: str) -> str:
+        """Best-effort recovery for mojibake like 'Ð¢ÐµÐºÑ...' in Cyrillic output."""
+        if not text:
+            return text
+
+        if "Ð" not in text and "Ñ" not in text:
+            return text
+
+        try:
+            return text.encode("latin-1", errors="ignore").decode("utf-8", errors="ignore")
+        except Exception:
+            return text
 
     def _fallback(self, reason: str) -> SituationReport:
         logger.warning("LLM недоступна: %s", reason)
