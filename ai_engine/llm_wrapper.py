@@ -7,11 +7,8 @@ Ollama должен быть запущен: ollama serve
 import json
 import logging
 from dataclasses import dataclass
-
-try:
-    import httpx
-except ImportError:
-    httpx = None
+from urllib import request as urlrequest
+from urllib import error as urlerror
 
 logger = logging.getLogger(__name__)
 
@@ -39,19 +36,16 @@ class LLMWrapper:
 
     def health_check(self) -> bool:
         """Проверяет что Ollama запущена и модель доступна."""
-        if httpx is None:
-            return False
         try:
-            resp = httpx.get("http://localhost:11434/api/tags", timeout=3)
-            models = [m["name"] for m in resp.json().get("models", [])]
+            with urlrequest.urlopen("http://localhost:11434/api/tags", timeout=3) as response:
+                payload = response.read().decode("utf-8")
+            data = json.loads(payload)
+            models = [m["name"] for m in data.get("models", [])]
             return any(self.model in m for m in models)
         except Exception:
             return False
 
     def generate_report(self, context: dict) -> SituationReport:
-        if httpx is None:
-            return self._fallback("httpx не установлен. pip install httpx")
-
         if not self.health_check():
             return self._fallback(
                 "Ollama не запущена или модель не загружена. "
@@ -89,9 +83,8 @@ class LLMWrapper:
 
     def _call_ollama(self, prompt: str) -> str:
         try:
-            response = httpx.post(
-                self.ollama_url,
-                json={
+            payload = json.dumps(
+                {
                     "model": self.model,
                     "prompt": prompt,
                     "stream": False,
@@ -99,11 +92,21 @@ class LLMWrapper:
                         "temperature": 0.3,
                         "num_predict": 300,
                     },
-                },
-                timeout=60,
+                }
+            ).encode("utf-8")
+
+            req = urlrequest.Request(
+                self.ollama_url,
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
             )
-            response.raise_for_status()
-            return response.json().get("response", "")
+            with urlrequest.urlopen(req, timeout=60) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            return data.get("response", "")
+        except urlerror.URLError as e:
+            logger.error("Ошибка сети при вызове Ollama: %s", e)
+            return ""
         except Exception as e:
             logger.error("Ошибка вызова Ollama: %s", e)
             return ""

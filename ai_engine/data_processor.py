@@ -139,12 +139,44 @@ class DataProcessor:
                     )
 
                 bins[reading.bin_id].fill_level = reading.fill_level
-                bins[reading.bin_id].history.append(
-                    {
-                        "timestamp": reading.timestamp.isoformat(),
-                        "fill_level": reading.fill_level,
-                    }
-                )
+                provided_history = r.get("history", [])
+                if provided_history:
+                    normalized_history = []
+                    for item in provided_history:
+                        try:
+                            ts = item["timestamp"]
+                            level = float(item["fill_level"])
+                            if isinstance(ts, str):
+                                ts_dt = datetime.fromisoformat(ts)
+                            else:
+                                ts_dt = ts
+                            level = max(0.0, min(1.0, level))
+                            normalized_history.append(
+                                {
+                                    "timestamp": ts_dt.isoformat(),
+                                    "fill_level": level,
+                                }
+                            )
+                        except (KeyError, ValueError, TypeError):
+                            continue
+
+                    if normalized_history:
+                        normalized_history.sort(key=lambda x: x["timestamp"])
+                        bins[reading.bin_id].history = normalized_history
+                    else:
+                        bins[reading.bin_id].history.append(
+                            {
+                                "timestamp": reading.timestamp.isoformat(),
+                                "fill_level": reading.fill_level,
+                            }
+                        )
+                else:
+                    bins[reading.bin_id].history.append(
+                        {
+                            "timestamp": reading.timestamp.isoformat(),
+                            "fill_level": reading.fill_level,
+                        }
+                    )
 
             except (KeyError, ValueError) as e:
                 logger.error("Malformed reading skipped: %s | %s", r, e)
