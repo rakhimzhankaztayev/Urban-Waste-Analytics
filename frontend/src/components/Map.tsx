@@ -34,6 +34,12 @@ interface RouteStop {
   distance_from_prev_km: number;
 }
 
+interface LocalizedText {
+  ru: string;
+  en: string;
+  kk: string;
+}
+
 interface AIReportResponse {
   predictions: Prediction[];
   route: {
@@ -44,9 +50,9 @@ interface AIReportResponse {
     truck_id: string;
   };
   report: {
-    what_is_happening: string;
-    how_critical: string;
-    recommended_actions: string;
+    what_is_happening: LocalizedText;
+    how_critical: LocalizedText;
+    recommended_actions: LocalizedText;
   };
   statistics: {
     total_bins_analysed: number;
@@ -69,6 +75,143 @@ interface DisplayMarker {
   confidence: number;
 }
 
+type Language = 'ru' | 'en' | 'kk';
+
+const UI_TEXT: Record<Language, Record<string, string>> = {
+  ru: {
+    subtitle: 'Умное управление отходами - Алматы',
+    urgency: 'Срочность',
+    high: 'Высокая',
+    medium: 'Средняя',
+    low: 'Низкая',
+    na: 'Н/Д',
+    critical: 'Критические',
+    warning: 'Предупреждение',
+    normal: 'Норма',
+    stops: 'Остановки',
+    distance: 'Дистанция',
+    eta: 'ETA',
+    route: 'Маршрут',
+    truck: 'Грузовик',
+    avgFill: 'Среднее заполнение',
+    lastUpdate: 'Последнее обновление',
+    refreshing: 'обновление...',
+    routeCalculating: 'рассчитывается...',
+    waitingAi: 'ожидаем ИИ',
+    aiSituation: 'ИИ-Анализ',
+    aiLoading: 'Загрузка AI-анализа...',
+    criticality: 'Критичность',
+    recommendation: 'Рекомендация',
+    waitingModel: 'ожидаем ответ модели',
+    checkBackend: 'Проверьте backend/ollama и повторите.',
+    aiSoon: 'данные скоро появятся.',
+    topPriorityBins: 'Приоритетные баки',
+    criticalBinsTable: 'Таблица критических баков',
+    bin: 'Бак',
+    fill: 'Заполн.',
+    conf: 'Увер.',
+    coords: 'Коорд.',
+    noCritical: 'Сейчас нет критических баков',
+    status: 'Статус',
+    fillLabel: 'Заполнение',
+    etaFull: 'До полного',
+    confidence: 'Уверенность',
+    openPanel: 'Открыть панель',
+    hidePanel: 'Скрыть панель',
+    aiUnavailable: 'AI-отчет недоступен',
+    unknown: 'Неизвестно',
+    lang: 'Язык',
+  },
+  en: {
+    subtitle: 'Smart Waste Management - Almaty',
+    urgency: 'Urgency',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
+    na: 'N/A',
+    critical: 'Critical',
+    warning: 'Warning',
+    normal: 'Normal',
+    stops: 'Stops',
+    distance: 'Distance',
+    eta: 'ETA',
+    route: 'Route',
+    truck: 'Truck',
+    avgFill: 'Avg Fill',
+    lastUpdate: 'Last update',
+    refreshing: 'refreshing...',
+    routeCalculating: 'calculating...',
+    waitingAi: 'waiting for AI',
+    aiSituation: 'AI Situation',
+    aiLoading: 'Loading AI analysis...',
+    criticality: 'Criticality',
+    recommendation: 'Recommendation',
+    waitingModel: 'waiting for model response',
+    checkBackend: 'Check backend/ollama and retry.',
+    aiSoon: 'data will appear soon.',
+    topPriorityBins: 'Top Priority Bins',
+    criticalBinsTable: 'Critical Bins Table',
+    bin: 'Bin',
+    fill: 'Fill',
+    conf: 'Conf',
+    coords: 'Coords',
+    noCritical: 'No critical bins now',
+    status: 'Status',
+    fillLabel: 'Fill',
+    etaFull: 'ETA full',
+    confidence: 'Confidence',
+    openPanel: 'Open panel',
+    hidePanel: 'Hide panel',
+    aiUnavailable: 'AI report unavailable',
+    unknown: 'Unknown',
+    lang: 'Language',
+  },
+  kk: {
+    subtitle: 'Ақылды қалдықтарды басқару - Алматы',
+    urgency: 'Шұғылдық',
+    high: 'Жоғары',
+    medium: 'Орташа',
+    low: 'Төмен',
+    na: 'Ж/Қ',
+    critical: 'Қауіпті',
+    warning: 'Ескерту',
+    normal: 'Қалыпты',
+    stops: 'Аялдама',
+    distance: 'Қашықтық',
+    eta: 'ETA',
+    route: 'Маршрут',
+    truck: 'Көлік',
+    avgFill: 'Орташа толу',
+    lastUpdate: 'Соңғы жаңарту',
+    refreshing: 'жаңартылуда...',
+    routeCalculating: 'есептелуде...',
+    waitingAi: 'ИИ күтілуде',
+    aiSituation: 'ИИ Талдауы',
+    aiLoading: 'AI талдауы жүктелуде...',
+    criticality: 'Критикалығы',
+    recommendation: 'Ұсыныс',
+    waitingModel: 'модель жауабын күту',
+    checkBackend: 'backend/ollama тексеріп, қайта көріңіз.',
+    aiSoon: 'мәліметтер жақында шығады.',
+    topPriorityBins: 'Басым бактар',
+    criticalBinsTable: 'Қауіпті бактар кестесі',
+    bin: 'Бак',
+    fill: 'Толу',
+    conf: 'Сенім',
+    coords: 'Коорд.',
+    noCritical: 'Қазір қауіпті бактар жоқ',
+    status: 'Күйі',
+    fillLabel: 'Толуы',
+    etaFull: 'Толуға дейін',
+    confidence: 'Сенімділік',
+    openPanel: 'Панельді ашу',
+    hidePanel: 'Панельді жасыру',
+    aiUnavailable: 'AI есеп қолжетімсіз',
+    unknown: 'Белгісіз',
+    lang: 'Тіл',
+  },
+};
+
 export default function WasteMap() {
   const [bins, setBins] = useState<Bin[]>([]);
   const [aiData, setAiData] = useState<AIReportResponse | null>(null);
@@ -78,6 +221,7 @@ export default function WasteMap() {
   const [loading, setLoading] = useState<boolean>(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [panelCollapsed, setPanelCollapsed] = useState<boolean>(false);
+  const [language, setLanguage] = useState<Language>('ru');
 
   useEffect(() => {
     const loadData = async () => {
@@ -217,10 +361,24 @@ export default function WasteMap() {
     return '#1f8a52';
   };
 
-  const getUrgencyTone = (label: string) => {
-    if (label === 'High') return 'danger';
-    if (label === 'Medium') return 'warning';
+  const getUrgencyTone = (level: 'high' | 'medium' | 'low') => {
+    if (level === 'high') return 'danger';
+    if (level === 'medium') return 'warning';
     return 'normal';
+  };
+
+  const t = UI_TEXT[language];
+
+  const pickLocalized = (value?: LocalizedText, fallback = '') => {
+    if (!value) return fallback;
+    return value[language] || value.ru || value.en || value.kk || fallback;
+  };
+
+  const formatStatus = (status: string) => {
+    if (status === 'Critical') return t.critical;
+    if (status === 'Warning') return t.warning;
+    if (status === 'Normal') return t.normal;
+    return status;
   };
 
   const topPriorityBins = useMemo(() => {
@@ -267,16 +425,18 @@ export default function WasteMap() {
   const displayedStats = aiData?.statistics ?? fallbackStats;
   const aiReady = Boolean(aiData);
 
-  const urgencyLabel = displayedStats
+  const urgencyLevel: 'high' | 'medium' | 'low' = displayedStats
     ? displayedStats.critical_bins > 5
-      ? 'High'
+      ? 'high'
       : displayedStats.critical_bins > 0
-        ? 'Medium'
-        : 'Low'
-    : 'N/A';
+        ? 'medium'
+        : 'low'
+    : 'low';
+
+  const urgencyLabel = urgencyLevel === 'high' ? t.high : urgencyLevel === 'medium' ? t.medium : t.low;
 
   return (
-    <div className="mission-root">
+    <div className={`mission-root lang-${language}`}>
       <Map
         initialViewState={{
           longitude: 76.9455,
@@ -311,7 +471,7 @@ export default function WasteMap() {
                 boxShadow: `0 0 0 4px ${getColorByStatus(bin.status)}22`,
               }}
               onClick={() => setSelectedBin(bin)}
-              title={`${bin.id}: ${bin.fillPercent}% | ${bin.status}`}
+              title={`${bin.id}: ${bin.fillPercent}% | ${formatStatus(bin.status)}`}
             />
           </Marker>
         ))}
@@ -325,12 +485,12 @@ export default function WasteMap() {
           >
             <div className="popup-content">
               <strong>{selectedBin.id}</strong>
-              <div>Status: {selectedBin.status}</div>
-              <div>Fill: {selectedBin.fillPercent}%</div>
+              <div>{t.status}: {formatStatus(selectedBin.status)}</div>
+              <div>{t.fillLabel}: {selectedBin.fillPercent}%</div>
               <div>
-                ETA full: {selectedBin.minutesUntilFull !== null ? `${selectedBin.minutesUntilFull} min` : 'N/A'}
+                {t.etaFull}: {selectedBin.minutesUntilFull !== null ? `${selectedBin.minutesUntilFull} min` : t.na}
               </div>
-              <div>Confidence: {(selectedBin.confidence * 100).toFixed(0)}%</div>
+              <div>{t.confidence}: {(selectedBin.confidence * 100).toFixed(0)}%</div>
             </div>
           </Popup>
         )}
@@ -341,7 +501,7 @@ export default function WasteMap() {
           type="button"
           className="panel-toggle"
           onClick={() => setPanelCollapsed((v) => !v)}
-          title={panelCollapsed ? 'Open panel' : 'Hide panel'}
+          title={panelCollapsed ? t.openPanel : t.hidePanel}
         >
           {panelCollapsed ? '›' : '‹'}
         </button>
@@ -352,120 +512,133 @@ export default function WasteMap() {
               <div className="panel-header">
                 <div>
                   <strong className="panel-title">Urban Waste Analytics</strong>
-                  <div className="panel-subtitle">Smart Waste Management - Almaty</div>
+                  <div className="panel-subtitle">{t.subtitle}</div>
                 </div>
-                <span className={`urgency-badge ${getUrgencyTone(urgencyLabel)}`}>Urgency: {urgencyLabel}</span>
+                <div className="panel-controls">
+                  <label className="language-label" htmlFor="language-select">{t.lang}</label>
+                  <select
+                    id="language-select"
+                    className="language-select"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as Language)}
+                  >
+                    <option value="ru">Русский</option>
+                    <option value="kk">Қазақша</option>
+                    <option value="en">English</option>
+                  </select>
+                  <span className={`urgency-badge ${getUrgencyTone(urgencyLevel)}`}>{t.urgency}: {urgencyLabel}</span>
+                </div>
               </div>
 
               <div className="kpi-grid">
                 <div className="kpi-card critical">
                   <div className="kpi-value">{displayedStats.critical_bins}</div>
-                  <div className="kpi-label">Critical</div>
+                  <div className="kpi-label">{t.critical}</div>
                 </div>
                 <div className="kpi-card warning">
                   <div className="kpi-value">{displayedStats.warning_bins}</div>
-                  <div className="kpi-label">Warning</div>
+                  <div className="kpi-label">{t.warning}</div>
                 </div>
                 <div className="kpi-card normal">
                   <div className="kpi-value">{displayedStats.normal_bins}</div>
-                  <div className="kpi-label">Normal</div>
+                  <div className="kpi-label">{t.normal}</div>
                 </div>
                 <div className="kpi-card neutral">
                   <div className="kpi-value">{aiReady ? (aiData?.route.bins_count ?? '-') : '-'}</div>
-                  <div className="kpi-label">Stops</div>
+                  <div className="kpi-label">{t.stops}</div>
                 </div>
                 <div className="kpi-card neutral">
                   <div className="kpi-value">{aiReady ? `${aiData?.route.total_distance_km ?? '-'} km` : '-'}</div>
-                  <div className="kpi-label">Distance</div>
+                  <div className="kpi-label">{t.distance}</div>
                 </div>
                 <div className="kpi-card neutral">
                   <div className="kpi-value">{aiReady ? `${aiData?.route.estimated_duration_min ?? '-'} min` : '-'}</div>
-                  <div className="kpi-label">ETA</div>
+                  <div className="kpi-label">{t.eta}</div>
                 </div>
               </div>
 
               <div className="route-summary">
                 {aiReady ? (
                   <>
-                    <div><strong>Route:</strong> {aiData?.route.total_distance_km ?? '-'} km, {aiData?.route.estimated_duration_min ?? '-'} min</div>
-                    <div><strong>Truck:</strong> {aiData?.route.truck_id ?? 'TRUCK-01'}</div>
-                    <div><strong>Stops:</strong> {aiData?.route.bins_count ?? '-'}</div>
+                    <div><strong>{t.route}:</strong> {aiData?.route.total_distance_km ?? '-'} km, {aiData?.route.estimated_duration_min ?? '-'} min</div>
+                    <div><strong>{t.truck}:</strong> {aiData?.route.truck_id ?? 'TRUCK-01'}</div>
+                    <div><strong>{t.stops}:</strong> {aiData?.route.bins_count ?? '-'}</div>
                   </>
                 ) : (
                   <>
-                    <div><strong>Route:</strong> рассчитывается...</div>
-                    <div><strong>Truck:</strong> TRUCK-01</div>
-                    <div><strong>Stops:</strong> ожидаем AI</div>
+                    <div><strong>{t.route}:</strong> {t.routeCalculating}</div>
+                    <div><strong>{t.truck}:</strong> TRUCK-01</div>
+                    <div><strong>{t.stops}:</strong> {t.waitingAi}</div>
                   </>
                 )}
-                <div><strong>Avg Fill:</strong> {displayedStats.average_fill_level}%</div>
-                <div><strong>Last update:</strong> {lastUpdated || 'N/A'} {loading ? '(refreshing...)' : ''}</div>
+                <div><strong>{t.avgFill}:</strong> {displayedStats.average_fill_level}%</div>
+                <div><strong>{t.lastUpdate}:</strong> {lastUpdated || t.na} {loading ? `(${t.refreshing})` : ''}</div>
               </div>
 
               <div className="report-block report-block-primary">
-                <div className="block-title">AI Situation</div>
+                <div className="block-title">{t.aiSituation}</div>
                 {aiReady ? (
                   <>
-                    <div style={{ marginBottom: 6 }}>{aiData?.report.what_is_happening ?? 'AI-отчет недоступен'}</div>
-                    <div style={{ marginBottom: 6 }}><strong>Criticality:</strong> {aiData?.report.how_critical ?? 'Неизвестно'}</div>
-                    <div><strong>Recommendation:</strong> {aiData?.report.recommended_actions ?? 'Проверьте backend/ollama и повторите.'}</div>
+                    <div style={{ marginBottom: 6 }}>{pickLocalized(aiData?.report.what_is_happening, t.aiUnavailable)}</div>
+                    <div style={{ marginBottom: 6 }}><strong>{t.criticality}:</strong> {pickLocalized(aiData?.report.how_critical, t.unknown)}</div>
+                    <div><strong>{t.recommendation}:</strong> {pickLocalized(aiData?.report.recommended_actions, t.checkBackend)}</div>
                   </>
                 ) : loading ? (
                   <>
-                    <div style={{ marginBottom: 6 }}>Загрузка AI-анализа...</div>
-                    <div style={{ marginBottom: 6 }}><strong>Criticality:</strong> рассчитывается</div>
-                    <div><strong>Recommendation:</strong> ожидаем ответ модели</div>
+                    <div style={{ marginBottom: 6 }}>{t.aiLoading}</div>
+                    <div style={{ marginBottom: 6 }}><strong>{t.criticality}:</strong> {t.routeCalculating}</div>
+                    <div><strong>{t.recommendation}:</strong> {t.waitingModel}</div>
                   </>
                 ) : panelError ? (
                   <>
                     <div style={{ marginBottom: 6 }}>{panelError}</div>
-                    <div style={{ marginBottom: 6 }}><strong>Criticality:</strong> Неизвестно</div>
-                    <div><strong>Recommendation:</strong> Проверьте backend/ollama и повторите.</div>
+                    <div style={{ marginBottom: 6 }}><strong>{t.criticality}:</strong> {t.unknown}</div>
+                    <div><strong>{t.recommendation}:</strong> {t.checkBackend}</div>
                   </>
                 ) : (
                   <>
-                    <div style={{ marginBottom: 6 }}>Ожидаем AI-аналитику...</div>
-                    <div style={{ marginBottom: 6 }}><strong>Criticality:</strong> рассчитывается</div>
-                    <div><strong>Recommendation:</strong> данные скоро появятся.</div>
+                    <div style={{ marginBottom: 6 }}>{t.waitingAi}</div>
+                    <div style={{ marginBottom: 6 }}><strong>{t.criticality}:</strong> {t.routeCalculating}</div>
+                    <div><strong>{t.recommendation}:</strong> {t.aiSoon}</div>
                   </>
                 )}
               </div>
 
-              <div className="block-title">Top Priority Bins</div>
+              <div className="block-title">{t.topPriorityBins}</div>
               <div className="priority-list">
                 {topPriorityBins.map((bin) => (
                   <div key={`priority-${bin.id}`} className="priority-row">
                     <span>{bin.id}</span>
-                    <span style={{ color: getColorByStatus(bin.status), fontWeight: 700 }}>{bin.status}</span>
+                    <span style={{ color: getColorByStatus(bin.status), fontWeight: 700 }}>{formatStatus(bin.status)}</span>
                     <span>{bin.fillPercent}%</span>
-                    <span>{bin.minutesUntilFull !== null ? `${bin.minutesUntilFull} min` : 'N/A'}</span>
+                    <span>{bin.minutesUntilFull !== null ? `${bin.minutesUntilFull} min` : t.na}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="block-title" style={{ marginTop: 10 }}>Critical Bins Table</div>
+              <div className="block-title" style={{ marginTop: 10 }}>{t.criticalBinsTable}</div>
               <div className="critical-table-wrap">
                 <table className="critical-table">
                   <thead>
                     <tr>
-                      <th>Bin</th>
-                      <th>Fill</th>
-                      <th>ETA</th>
-                      <th>Conf</th>
-                      <th>Coords</th>
+                      <th>{t.bin}</th>
+                      <th>{t.fill}</th>
+                      <th>{t.eta}</th>
+                      <th>{t.conf}</th>
+                      <th>{t.coords}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {criticalBins.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="critical-empty">No critical bins now</td>
+                        <td colSpan={5} className="critical-empty">{t.noCritical}</td>
                       </tr>
                     )}
                     {criticalBins.slice(0, 20).map((bin) => (
                       <tr key={`critical-${bin.id}`}>
                         <td>{bin.id}</td>
                         <td>{bin.fillPercent}%</td>
-                        <td>{bin.minutesUntilFull !== null ? `${bin.minutesUntilFull}m` : 'N/A'}</td>
+                        <td>{bin.minutesUntilFull !== null ? `${bin.minutesUntilFull}m` : t.na}</td>
                         <td>{(bin.confidence * 100).toFixed(0)}%</td>
                         <td>{bin.lat.toFixed(3)}, {bin.lng.toFixed(3)}</td>
                       </tr>

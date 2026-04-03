@@ -1,4 +1,5 @@
 @import url('https://fonts.cdnfonts.com/css/nihonium113-console');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap');
 
 :root {
   --mc-bg: #f7f1e8;
@@ -26,6 +27,55 @@
     radial-gradient(circle at 12% 8%, rgba(179, 107, 44, 0.15), transparent 34%),
     radial-gradient(circle at 88% 90%, rgba(215, 144, 47, 0.14), transparent 30%),
     var(--mc-bg);
+}
+
+.mission-root.lang-kk {
+  font-family: 'Noto Sans', 'Segoe UI', 'Trebuchet MS', sans-serif;
+}
+
+.mission-root.lang-kk .mission-panel,
+.mission-root.lang-kk .mission-panel * {
+  font-family: 'Noto Sans', 'Segoe UI', 'Trebuchet MS', sans-serif;
+}
+
+.mission-root.lang-kk .mission-panel {
+  font-size: 16px;
+}
+
+.mission-root.lang-kk .panel-title {
+  font-size: 34px;
+}
+
+.mission-root.lang-kk .panel-subtitle {
+  font-size: 20px;
+}
+
+.mission-root.lang-kk .urgency-badge {
+  font-size: 22px;
+}
+
+.mission-root.lang-kk .kpi-value {
+  font-size: 36px;
+}
+
+.mission-root.lang-kk .kpi-label {
+  font-size: 20px;
+}
+
+.mission-root.lang-kk .block-title,
+.mission-root.lang-kk .report-block-primary .block-title {
+  font-size: 26px;
+}
+
+.mission-root.lang-kk .route-summary,
+.mission-root.lang-kk .report-block {
+  font-size: 24px;
+}
+
+.mission-root.lang-kk .priority-row,
+.mission-root.lang-kk .critical-table,
+.mission-root.lang-kk .panel-status {
+  font-size: 20px;
 }
 
 .mission-panel {
@@ -88,6 +138,28 @@
   align-items: flex-start;
   margin-bottom: 10px;
   gap: 10px;
+}
+
+.panel-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.language-label {
+  font-size: 16px;
+  color: var(--mc-muted);
+}
+
+.language-select {
+  border: 1px solid #d7b998;
+  background: #fff7ee;
+  color: #5e4126;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 6px 10px;
+  font-family: inherit;
 }
 
 .panel-title {
@@ -318,6 +390,11 @@
   .urgency-badge {
     font-size: 18px;
     padding: 10px 14px;
+  }
+
+  .language-label,
+  .language-select {
+    font-size: 14px;
   }
 
   .kpi-value {

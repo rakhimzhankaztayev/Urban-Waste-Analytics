@@ -51,10 +51,16 @@ class RouteOutput(BaseModel):
     truck_id: str
 
 
+class LocalizedText(BaseModel):
+    ru: str
+    en: str
+    kk: str
+
+
 class ReportOutput(BaseModel):
-    what_is_happening: str
-    how_critical: str
-    recommended_actions: str
+    what_is_happening: LocalizedText
+    how_critical: LocalizedText
+    recommended_actions: LocalizedText
 
 
 class StatisticsOutput(BaseModel):

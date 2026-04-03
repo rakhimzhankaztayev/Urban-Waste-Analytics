@@ -100,9 +100,21 @@ def ai_report(request: AIReportRequest):
                 "truck_id": "TRUCK-01"
             },
             "report": {
-                "what_is_happening": "Нет данных для анализа",
-                "how_critical": "Normal",
-                "recommended_actions": "Отправьте данные с датчиков"
+                "what_is_happening": {
+                    "ru": "Нет данных для анализа",
+                    "en": "No data for analysis",
+                    "kk": "Талдауға дерек жоқ"
+                },
+                "how_critical": {
+                    "ru": "Низкий",
+                    "en": "Low",
+                    "kk": "Төмен"
+                },
+                "recommended_actions": {
+                    "ru": "Отправьте данные с датчиков",
+                    "en": "Send sensor data",
+                    "kk": "Датчик деректерін жіберіңіз"
+                }
             },
             "statistics": {
                 "total_bins_analysed": 0,
