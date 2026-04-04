@@ -1,6 +1,6 @@
 # 🗑️ Urban-Waste-Analytics: Smart City Waste Management
 > **Прототип интеллектуальной системы управления городскими отходами на базе ИИ.**
-
+https://canva.link/hohmfyqvsgut33k Ссылка на презентацию
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-yellow.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React-61DAFB.svg)](https://reactjs.org/)
